@@ -13,7 +13,6 @@ private:
         std::size_t neighbor_mbox_index;
 
         Neighbor(Node& neighbor, std::size_t neighbor_mbox_index) : neighbor(neighbor), neighbor_mbox_index(neighbor_mbox_index) {}
-        Neighbor(Neighbor&&) = default;
     };
 
     node_id_t id{};
@@ -21,6 +20,13 @@ private:
     MessageBox message_box{};
 
     friend struct TestNode;
+
+    void receiveMessage(Message&& msg){
+        const std::size_t neighbor_mbox_index = neighbors.at(msg.sender.get().ID()).neighbor_mbox_index;
+        message_box.writeMessage(std::move(msg), neighbor_mbox_index);
+    }
+
+    void handleMessage(Message&& msg);
 public:
     explicit Node(node_id_t id) : id(id) {};
 
@@ -38,17 +44,12 @@ public:
     [[nodiscard]] node_id_t ID() const {return id;}
 
     [[nodiscard]] bool emptyInbox() const {return message_box.empty();}
-    void receiveMessage(Message&& msg){
-        const std::size_t neighbor_mbox_index = neighbors.at(msg.sender.get().ID()).neighbor_mbox_index;
-        message_box.writeMessage(std::move(msg), neighbor_mbox_index);
-    }
 
     [[nodiscard]] std::optional<Message> readMessage(){
         return message_box.readMessage();
     }
 
-    void handleMessage(Message&& msg);
-    void handleAllMessages(){
+    void handleAllInobxMessages(){
         while(std::optional<Message> msg = readMessage()){
             handleMessage(std::move(msg.value()));
         }
@@ -74,7 +75,7 @@ public:
     void preCycle();
 
     void cycle(){
-        handleAllMessages();
+        handleAllInobxMessages();
     }
 
     void postCycle();
