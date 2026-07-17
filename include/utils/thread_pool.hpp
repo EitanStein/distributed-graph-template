@@ -27,7 +27,7 @@ private:
     std::atomic<std::size_t> num_active_tasks{};
     std::condition_variable tasks_done_cv;
 
-    void ThreadLoop(std::stop_token stoken) {};
+    void threadLoop(std::stop_token stoken);
 public:
     ThreadPool(std::size_t thread_pool_size = default_thread_count);
     ThreadPool(const ThreadPool&) = delete;
@@ -36,9 +36,9 @@ public:
     ThreadPool& operator=(ThreadPool&&) noexcept = delete;
     ~ThreadPool();
 
-    [[nodiscard]] bool IsTaskQueueEmpty(){return true;};
-    void WaitForEmptyQueue();
-    void AddTask(Task task);
+    [[nodiscard]] bool isTaskQueueEmpty();
+    void waitForEmptyQueue();
+    void addTask(Task&& task);
 };
 
 #include "thread_pool_impl.hpp"
