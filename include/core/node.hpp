@@ -1,9 +1,12 @@
 #pragma once
-#include "types.hpp"
+
 #include <utility>
 #include <unordered_map>
 #include <ranges>
+
 #include "message_box.hpp"
+#include "types.hpp"
+#include "utils/log_macros.hpp"
 
 
 class Node{
@@ -27,14 +30,16 @@ private:
     }
 
     void handleMessage(Message&& msg);
+    
+    void preCycle();
 public:
-    explicit Node(node_id_t id) : id(id) {};
+    Node(node_id_t id) : id(id) {};
 
     Node(const Node&) = delete;
-    Node& operator=(const Node&) = delete;
-
     Node(Node&&) noexcept = default;
-    Node& operator=(Node&&) noexcept = default;
+
+    Node& operator=(const Node&) = delete;
+    Node& operator=(Node&&) noexcept = delete;
 
     void addNeighbor(Node& neighbor){
         const std::size_t neighbor_mbox_index = message_box.addNeighborBox();
@@ -72,12 +77,24 @@ public:
         }
     }
 
-    void preCycle();
-
     void cycle(){
+        preCycle();
         handleAllInobxMessages();
     }
 
     void postCycle();
 
+    struct Task{
+        enum class Name{Cycle};
+
+        std::reference_wrapper<Node> node;
+        Name task;
+
+        Task(Node& node, Task::Name task) : node(node), task(task) {}
+
+        void operator()();
+    };
+
 };
+
+

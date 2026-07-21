@@ -15,7 +15,7 @@ TEST_CASE("single node", ""){
     REQUIRE(node.emptyInbox());
     REQUIRE(node.ID() == 1);
     REQUIRE(node.readMessage() == std::nullopt);
-    node.preCycle();
+    node.postCycle();
     REQUIRE(node.readMessage() == std::nullopt);
 }
 
@@ -44,7 +44,6 @@ TEST_CASE("sending messages", ""){
     node1.sendMessage(node2.ID(), msg_t{});
     REQUIRE(node2.emptyInbox());
 
-    node2.preCycle();
     node2.postCycle();
     REQUIRE(!node2.emptyInbox());
     REQUIRE(node2.readMessage().value().payload == msg_t{});
@@ -58,9 +57,7 @@ TEST_CASE("sending messages", ""){
     REQUIRE(node2.emptyInbox());
     REQUIRE(node3.emptyInbox());
 
-    node2.preCycle();
     node2.postCycle();
-    node3.preCycle();
     node3.postCycle();
 
     REQUIRE(!node2.emptyInbox());

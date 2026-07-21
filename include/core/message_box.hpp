@@ -28,7 +28,7 @@ private:
 public:
     MessageBox() = default;
     MessageBox(const MessageBox&) = delete;
-    MessageBox(MessageBox&&) noexcept = delete;
+    MessageBox(MessageBox&&) noexcept = default;
     MessageBox& operator=(const MessageBox&) = delete;
     MessageBox& operator=(MessageBox&&) noexcept = delete;
 
