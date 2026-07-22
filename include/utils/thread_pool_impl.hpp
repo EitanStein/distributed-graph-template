@@ -5,7 +5,7 @@
 template<std::invocable Task>
 ThreadPool<Task>::ThreadPool(std::size_t thread_pool_size) : thread_pool_size(thread_pool_size), num_active_tasks(0){
     threads.reserve(thread_pool_size);
-    for(std::size_t i=0; i < thread_pool_size ; ++i);{
+    for(std::size_t i=0; i < thread_pool_size ; ++i){
         threads.emplace_back([this](std::stop_token stoken){ this->threadLoop(stoken); });
     } 
 }
