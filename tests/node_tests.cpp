@@ -34,6 +34,19 @@ TEST_CASE("basic neighbor checks", ""){
     REQUIRE(node2.emptyInbox());
 }
 
+TEST_CASE("double neighbor add", ""){
+    Node node1{0};
+    Node node2{1};
+
+    node1.addNeighbor(node2);
+
+    TestNode helper;
+    REQUIRE(helper.getNeighbors(node1).size() == 1);
+
+    node1.addNeighbor(node2);
+    REQUIRE(helper.getNeighbors(node1).size() == 1);
+}
+
 TEST_CASE("sending messages", ""){
     Node node1{0};
     Node node2{1};
