@@ -2,12 +2,9 @@
 
 #include <catch2/catch_all.hpp>
 #include <catch2/catch_test_macros.hpp>
-#include "core/graph.hpp"
 
-struct TestNode{
-    const MessageBox& getMessageBox(Node& node) const {return node.message_box;}
-    const std::unordered_map<node_id_t, Node::Neighbor>& getNeighbors(Node& node) const {return node.neighbors;}
-};
+#include "core/graph.hpp"
+#include "test_node.hpp"
 
 TEST_CASE("single node", ""){
     Graph g(1);
