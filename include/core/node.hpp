@@ -46,7 +46,7 @@ public:
         neighbors.emplace(std::piecewise_construct, std::forward_as_tuple(neighbor.ID()), std::forward_as_tuple(neighbor, neighbor_mbox_index));
     }
 
-    [[nodiscard]] node_id_t ID() const {return id;}
+    [[nodiscard]] node_id_t ID() const noexcept {return id;}
 
     [[nodiscard]] bool emptyInbox() const {return message_box.empty();}
 
