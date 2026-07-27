@@ -62,8 +62,7 @@ public:
 
     void sendMessage(node_id_t neighbor_id, msg_t&& msg){
         if(!neighbors.contains(neighbor_id)){
-            // TODO log error
-            [[maybe_unused]] int x = 0;
+            LOG_ERROR("node {} does not contain a neighbor with id {}", id, neighbor_id);
             return;
         }
             
