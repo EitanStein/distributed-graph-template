@@ -7,9 +7,10 @@
 
 
 class Graph{
+    using ThreadTask = Node::Task;
 private:
     std::vector<Node> nodes{};
-    ThreadPool<Node::Task> thread_pool;
+    ThreadPool<ThreadTask> thread_pool;
 public:
     Graph(node_id_t size, std::size_t thread_pool_size = std::thread::hardware_concurrency()) : thread_pool(thread_pool_size){
         nodes.reserve(size);
@@ -32,7 +33,7 @@ public:
         addEdge(nodes[node1], nodes[node2]);
     }
     
-    const std::vector<Node>& getNodes() const {
+    const std::vector<Node>& getNodes() const noexcept{
         return nodes;
     }
 
@@ -45,6 +46,17 @@ public:
     }
     
     void cycle(){
+        // TODO consider batching (active) nodes for each task so the task queue is smaller 
+        // and less time is spent on lock contention when adding/extracting tasks
+        for(auto& node : nodes){
+            thread_pool.addTask(ThreadTask{node});
+        }
 
+        thread_pool.waitForEmptyQueue();
+        
+        // assumes post cycle is a lightweight operation
+        for(auto& node : nodes){
+            node.postCycle();
+        }
     }
 };
