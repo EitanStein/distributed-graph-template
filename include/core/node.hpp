@@ -85,12 +85,9 @@ public:
     void postCycle();
 
     struct Task{
-        enum class Name{Cycle};
-
         std::reference_wrapper<Node> node;
-        Name task;
 
-        Task(Node& node, Task::Name task) : node(node), task(task) {}
+        Task(Node& node) : node(node) {}
 
         void operator()();
     };
