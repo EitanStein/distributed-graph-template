@@ -78,7 +78,6 @@ public:
     }
 
     void cycle(){
-        preCycle();
         handleAllInobxMessages();
     }
 
