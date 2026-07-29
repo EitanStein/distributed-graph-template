@@ -43,7 +43,7 @@ private:
     }
     
     void preCycle() requires ValidDerived<Derived, MessageType> {
-        static_case<Derived*>(this)->preCycleImpl();
+        static_cast<Derived*>(this)->preCycleImpl();
     }
 public:
     BaseNode(node_id_t id) : id(id) {
