@@ -12,7 +12,7 @@
 
 
 template<typename Derived, typename MsgArg>
-concept ValidDerived = requires(Derived derived, MsgArg&& arg){
+concept ValidDerivedNode = requires(Derived& derived, MsgArg&& arg){
     {derived.handleMessage(std::forward<MsgArg>(arg))} -> std::same_as<void>;
     {derived.preCycleImpl()} -> std::same_as<void>;
 };
@@ -42,7 +42,7 @@ private:
         message_box.writeMessage(std::move(msg), neighbor_mbox_index);
     }
     
-    void preCycle() requires ValidDerived<Derived, MessageType> {
+    void preCycle() requires ValidDerivedNode<Derived, MessageType> {
         static_cast<Derived*>(this)->preCycleImpl();
     }
 public:
@@ -69,7 +69,7 @@ public:
         return message_box.readMessage();
     }
 
-    void handleAllInobxMessages() requires ValidDerived<Derived, MessageType> {
+    void handleAllInobxMessages() requires ValidDerivedNode<Derived, MessageType> {
         while(std::optional<MessageType> msg = readMessage()){
             static_cast<Derived*>(this)->handleMessage(std::move(msg.value()));
         }
@@ -109,7 +109,9 @@ public:
             node.get().cycle();
         }
     };
-
 };
 
+
+template<typename DerivedNode>
+concept ValidNode = std::derived_from<DerivedNode, BaseNode<DerivedNode, typename DerivedNode::MessagePayload>>;
 
