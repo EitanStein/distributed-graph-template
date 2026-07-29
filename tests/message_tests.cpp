@@ -7,8 +7,9 @@
 #include "core/node.hpp"
 #include "test_node.hpp"
 
+
 TEST_CASE("empty message box test", ""){
-    MessageBox message_box;
+    MessageBox<TestNode::MessagePayload> message_box;
 
     REQUIRE(message_box.empty());
     REQUIRE(message_box.readMessage() == std::nullopt);
@@ -17,12 +18,12 @@ TEST_CASE("empty message box test", ""){
 TEST_CASE("test writing and reading message", ""){
     TestNode node1{0};
     TestNode node2{1};
-    MessageBox message_box;
+    MessageBox<TestNode::MessagePayload> message_box;
 
     REQUIRE(message_box.addNeighborBox() == 0);
     REQUIRE(message_box.addNeighborBox() == 1);
 
-    msg_t msg;
+    TestNode::MessagePayload msg{};
     message_box.writeMessage(Message(node1.ID(), node2.ID(), msg), 0);
     REQUIRE(message_box.empty());
     REQUIRE(message_box.readMessage() == std::nullopt);

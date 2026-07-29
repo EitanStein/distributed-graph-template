@@ -17,8 +17,11 @@ concept ValidDerived = requires(Derived derived, MsgArg&& arg){
     {derived.preCycleImpl()} -> std::same_as<void>;
 };
 
-template<typename Derived>
+template<typename Derived, typename MsgPayload>
 class BaseNode{
+public:
+    using MessagePayload = MsgPayload;
+    using MessageType = MessageBox<MessagePayload>::MessageType;
 protected:
     struct Neighbor{
         std::reference_wrapper<Derived> neighbor;
@@ -32,14 +35,14 @@ protected:
     std::unordered_map<node_id_t, Neighbor> neighbors{};
 private:
     
-    MessageBox message_box{};
+    MessageBox<MessagePayload> message_box{};
 
-    void receiveMessage(Message&& msg){
+    void receiveMessage(MessageType&& msg){
         const std::size_t neighbor_mbox_index = neighbors.at(msg.sender).neighbor_mbox_index;
         message_box.writeMessage(std::move(msg), neighbor_mbox_index);
     }
     
-    void preCycle() requires ValidDerived<Derived, Message> {
+    void preCycle() requires ValidDerived<Derived, MessageType> {
         static_case<Derived*>(this)->preCycleImpl();
     }
 public:
@@ -62,29 +65,29 @@ public:
 
     [[nodiscard]] bool emptyInbox() const {return message_box.empty();}
 
-    [[nodiscard]] std::optional<Message> readMessage(){
+    [[nodiscard]] std::optional<MessageType> readMessage(){
         return message_box.readMessage();
     }
 
-    void handleAllInobxMessages() requires ValidDerived<Derived, Message> {
-        while(std::optional<Message> msg = readMessage()){
+    void handleAllInobxMessages() requires ValidDerived<Derived, MessageType> {
+        while(std::optional<MessageType> msg = readMessage()){
             static_cast<Derived*>(this)->handleMessage(std::move(msg.value()));
         }
     }
 
-    void sendMessage(node_id_t neighbor_id, msg_t&& msg){
+    void sendMessage(node_id_t neighbor_id, MessagePayload&& msg){
         if(!neighbors.contains(neighbor_id)){
             LOG_ERROR("node {} does not contain a neighbor with id {}", id, neighbor_id);
             return;
         }
             
         Neighbor& neighbor = neighbors.at(neighbor_id);
-        neighbor.neighbor.get().receiveMessage(Message(id, neighbor.neighbor.get().ID(), std::move(msg)));
+        neighbor.neighbor.get().receiveMessage(MessageType(id, neighbor.neighbor.get().ID(), std::move(msg)));
     }
 
-    void broadcast(msg_t&& msg){
+    void broadcast(MessagePayload&& msg){
         for(Neighbor& neighbor : std::views::values(neighbors)){
-            neighbor.neighbor.get().receiveMessage(Message(id, neighbor.neighbor.get().ID(), msg));
+            neighbor.neighbor.get().receiveMessage(MessageType(id, neighbor.neighbor.get().ID(), msg));
         }
     }
 

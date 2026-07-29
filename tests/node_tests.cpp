@@ -48,19 +48,19 @@ TEST_CASE("sending messages", ""){
     node1.addNeighbor(node2);
     node2.addNeighbor(node1);
 
-    node1.sendMessage(node2.ID(), msg_t{});
+    node1.sendMessage(node2.ID(), TestNode::MessagePayload{});
     REQUIRE(node2.emptyInbox());
 
     node2.postCycle();
     REQUIRE(!node2.emptyInbox());
-    REQUIRE(node2.readMessage().value().payload == msg_t{});
+    REQUIRE(node2.readMessage().value().payload == TestNode::MessagePayload{});
     REQUIRE(node2.emptyInbox());
 
     TestNode node3{2};
     node2.addNeighbor(node3);
     node3.addNeighbor(node2);
 
-    node1.broadcast(msg_t{});
+    node1.broadcast(TestNode::MessagePayload{});
     REQUIRE(node2.emptyInbox());
     REQUIRE(node3.emptyInbox());
 
@@ -68,7 +68,7 @@ TEST_CASE("sending messages", ""){
     node3.postCycle();
 
     REQUIRE(!node2.emptyInbox());
-    REQUIRE(node2.readMessage().value().payload == msg_t{});
+    REQUIRE(node2.readMessage().value().payload == TestNode::MessagePayload{});
     REQUIRE(node2.emptyInbox());
     REQUIRE(node3.emptyInbox());
 }

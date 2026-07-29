@@ -1,15 +1,19 @@
 #pragma once
-#include "types.hpp"
-#include "message.hpp"
+
 #include <array>
 #include <vector>
 #include <cstdint>
 #include <optional>
 
+#include "types.hpp"
+#include "message.hpp"
 
+template<typename MessagePayload>
 class MessageBox{
+public:
+    using MessageType = Message<MessagePayload>;
 private:
-    using MsgBuffer = std::vector<Message>;
+    using MsgBuffer = std::vector<MessageType>;
 
     enum BufferIndex : std::uint8_t {
         Ping = 0,
@@ -39,12 +43,12 @@ public:
         return message_box[1].size() - 1; 
     }
 
-    void writeMessage(Message&& msg, std::size_t index){
+    void writeMessage(MessageType&& msg, std::size_t index){
         MsgBuffer& target_buffer = message_box[write_slot][index];
         target_buffer.emplace_back(std::move(msg));
     }
 
-    [[nodiscard]] std::optional<Message> readMessage(){
+    [[nodiscard]] std::optional<MessageType> readMessage(){
         if(buffer_read_index == message_box[read_slot].size())
             return std::nullopt;
 
@@ -60,7 +64,7 @@ public:
         // TODO change to read messages in order instead of like a stack?
         // does it matter? since we are using synchronized phases
         // meaning we assume order of messages received does not matter in each phase
-        Message result = std::move(target_buffer.back());
+        MessageType result = std::move(target_buffer.back());
         target_buffer.pop_back();
         return result;
     }
