@@ -9,7 +9,6 @@ target_include_directories(msg_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../incl
 target_link_libraries(graph_tests
     PRIVATE
         project_options
-        core_module
         logging_module
         Catch2::Catch2WithMain
 )
@@ -17,7 +16,6 @@ target_link_libraries(graph_tests
 target_link_libraries(node_tests
     PRIVATE
         project_options
-        core_module
         logging_module
         Catch2::Catch2WithMain
 )
@@ -25,7 +23,6 @@ target_link_libraries(node_tests
 target_link_libraries(msg_tests
     PRIVATE
         project_options
-        core_module
         logging_module
         Catch2::Catch2WithMain
 )

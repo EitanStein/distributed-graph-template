@@ -74,10 +74,8 @@ endif()
 
 
 
-# if threads are needed
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
 add_subdirectory(src/utils)
-add_subdirectory(src/core)
 add_subdirectory(tests)
