@@ -9,30 +9,11 @@
 
 template<ValidNode Node>
 class Graph{
-private:
-    using ThreadTask = Node::Task;
-    ThreadPool<ThreadTask> thread_pool;
-protected:
-    std::vector<Node> nodes{};
-
-    void mainCycle(){
-        // TODO consider batching (active) nodes for each task so the task queue is smaller 
-        // and less time is spent on lock contention when adding/extracting tasks
-        for(auto& node : nodes){
-            thread_pool.addTask(ThreadTask{node});
-        }
-    }
-
-    void postCycle(){
-        for(auto& node : nodes){
-            node.postCycle();
-        }
-    }
 public:
-    Graph(node_id_t size, std::size_t thread_pool_size = std::thread::hardware_concurrency()) : thread_pool(thread_pool_size){
-        nodes.reserve(size);
+    Graph(node_id_t size, std::size_t thread_pool_size = ThreadInfo::default_thread_count) : thread_pool_(thread_pool_size){
+        nodes_.reserve(size);
         for(node_id_t id = 0; id < size ; ++id){
-            nodes.emplace_back(id);
+            nodes_.emplace_back(id);
         }
     }
 
@@ -47,26 +28,45 @@ public:
     }
 
     void addEdge(node_id_t node1, node_id_t node2){
-        addEdge(nodes[node1], nodes[node2]);
+        addEdge(nodes_[node1], nodes_[node2]);
     }
     
     const std::vector<Node>& getNodes() const noexcept{
-        return nodes;
+        return nodes_;
     }
 
     const Node& getNode(node_id_t id) const {
-        return nodes.at(id);
+        return nodes_.at(id);
     }
     
     Node& getNode(node_id_t id) {
-        return nodes[id];
+        return nodes_[id];
     }
     
     void cycle(){
         mainCycle();
-        thread_pool.waitForEmptyQueue();
+        thread_pool_.waitForEmptyQueue();
         
         // assumes post cycle is a lightweight operation - does not use threads
         postCycle();
+    }
+private:
+    using ThreadTask = Node::Task;
+
+    ThreadPool<ThreadTask> thread_pool_;
+    std::vector<Node> nodes_{};
+
+    void mainCycle(){
+        // TODO consider batching (active) nodes for each task so the task queue is smaller 
+        // and less time is spent on lock contention when adding/extracting tasks
+        for(auto& node : nodes_){
+            thread_pool_.addTask(ThreadTask{node});
+        }
+    }
+
+    void postCycle(){
+        for(auto& node : nodes_){
+            node.postCycle();
+        }
     }
 };

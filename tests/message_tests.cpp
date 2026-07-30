@@ -30,7 +30,7 @@ TEST_CASE("test writing and reading message", ""){
 
     message_box.changePhase();
     REQUIRE(!message_box.empty());
-    REQUIRE(message_box.readMessage().value().payload == msg);
+    REQUIRE(message_box.readMessage().value().payload_ == msg);
 
     REQUIRE(message_box.empty());
     REQUIRE(message_box.readMessage() == std::nullopt);

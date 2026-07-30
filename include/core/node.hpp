@@ -22,82 +22,6 @@ class BaseNode{
 public:
     using MessagePayload = MsgPayload;
     using MessageType = MessageBox<MessagePayload>::MessageType;
-protected:
-    struct Neighbor{
-        std::reference_wrapper<Derived> neighbor;
-        std::size_t neighbor_mbox_index;
-
-        Neighbor(Derived& neighbor, std::size_t neighbor_mbox_index) : neighbor(neighbor), neighbor_mbox_index(neighbor_mbox_index) {}
-    };
-    
-
-    const node_id_t id{};
-    std::unordered_map<node_id_t, Neighbor> neighbors{};
-private:
-    
-    MessageBox<MessagePayload> message_box{};
-
-    void receiveMessage(MessageType&& msg){
-        const std::size_t neighbor_mbox_index = neighbors.at(msg.sender).neighbor_mbox_index;
-        message_box.writeMessage(std::move(msg), neighbor_mbox_index);
-    }
-    
-    void preCycle() requires ValidDerivedNode<Derived, MessageType> {
-        static_cast<Derived*>(this)->preCycleImpl();
-    }
-public:
-    BaseNode(node_id_t id) : id(id) {
-        static_assert(std::derived_from<Derived, BaseNode>);
-    }
-
-    BaseNode(const BaseNode&) = delete;
-    BaseNode(BaseNode&&) noexcept = default;
-
-    BaseNode& operator=(const BaseNode&) = delete;
-    BaseNode& operator=(BaseNode&&) noexcept = delete;
-
-    void addNeighbor(Derived& neighbor){
-        const std::size_t neighbor_mbox_index = message_box.addNeighborBox();
-        neighbors.emplace(std::piecewise_construct, std::forward_as_tuple(neighbor.ID()), std::forward_as_tuple(neighbor, neighbor_mbox_index));
-    }
-
-    [[nodiscard]] node_id_t ID() const noexcept {return id;}
-
-    [[nodiscard]] bool emptyInbox() const {return message_box.empty();}
-
-    [[nodiscard]] std::optional<MessageType> readMessage(){
-        return message_box.readMessage();
-    }
-
-    void handleAllInobxMessages() requires ValidDerivedNode<Derived, MessageType> {
-        while(std::optional<MessageType> msg = readMessage()){
-            static_cast<Derived*>(this)->handleMessage(std::move(msg.value()));
-        }
-    }
-
-    void sendMessage(node_id_t neighbor_id, MessagePayload&& msg){
-        if(!neighbors.contains(neighbor_id)){
-            LOG_ERROR("node {} does not contain a neighbor with id {}", id, neighbor_id);
-            return;
-        }
-            
-        Neighbor& neighbor = neighbors.at(neighbor_id);
-        neighbor.neighbor.get().receiveMessage(MessageType(id, neighbor.neighbor.get().ID(), std::move(msg)));
-    }
-
-    void broadcast(MessagePayload&& msg){
-        for(Neighbor& neighbor : std::views::values(neighbors)){
-            neighbor.neighbor.get().receiveMessage(MessageType(id, neighbor.neighbor.get().ID(), msg));
-        }
-    }
-
-    void cycle(){
-        handleAllInobxMessages();
-    }
-
-    void postCycle() {
-        message_box.changePhase();
-    }
 
     struct Task{
         std::reference_wrapper<Derived> node;
@@ -109,6 +33,82 @@ public:
             node.get().cycle();
         }
     };
+
+    BaseNode(node_id_t id) : id_(id) {
+        static_assert(std::derived_from<Derived, BaseNode>);
+    }
+
+    BaseNode(const BaseNode&) = delete;
+    BaseNode(BaseNode&&) noexcept = default;
+
+    BaseNode& operator=(const BaseNode&) = delete;
+    BaseNode& operator=(BaseNode&&) noexcept = delete;
+
+    void addNeighbor(Derived& neighbor){
+        const std::size_t neighbor_mbox_index = message_box_.addNeighborBox();
+        neighbors_.emplace(std::piecewise_construct, std::forward_as_tuple(neighbor.ID()), std::forward_as_tuple(neighbor, neighbor_mbox_index));
+    }
+
+    [[nodiscard]] node_id_t ID() const noexcept {return id_;}
+
+    [[nodiscard]] bool emptyInbox() const {return message_box_.empty();}
+
+    [[nodiscard]] std::optional<MessageType> readMessage(){
+        return message_box_.readMessage();
+    }
+
+    void handleAllInobxMessages() requires ValidDerivedNode<Derived, MessageType> {
+        while(std::optional<MessageType> msg = readMessage()){
+            static_cast<Derived*>(this)->handleMessage(std::move(msg.value()));
+        }
+    }
+
+    void sendMessage(node_id_t neighbor_id, MessagePayload&& msg){
+        if(!neighbors_.contains(neighbor_id)){
+            LOG_ERROR("node {} does not contain a neighbor with id {}", id_, neighbor_id);
+            return;
+        }
+            
+        Derived& neighbor_node = neighbors_.at(neighbor_id).neighbor_.get();
+        neighbor_node.receiveMessage(MessageType(id_, neighbor_node.ID(), std::move(msg)));
+    }
+
+    void broadcast(MessagePayload&& msg){
+        for(Neighbor& neighbor : std::views::values(neighbors_)){
+            Derived& neighbor_node = neighbor.neighbor_.get();
+            neighbor_node.receiveMessage(MessageType(id_, neighbor_node.ID(), msg));
+        }
+    }
+
+    void cycle(){
+        handleAllInobxMessages();
+    }
+
+    void postCycle() {
+        message_box_.changePhase();
+    }
+protected:
+    struct Neighbor{
+        std::reference_wrapper<Derived> neighbor_;
+        std::size_t neighbor_mbox_index_;
+
+        Neighbor(Derived& neighbor, std::size_t neighbor_mbox_index) : neighbor_(neighbor), neighbor_mbox_index_(neighbor_mbox_index) {}
+    };
+    using NeighborMap = std::unordered_map<node_id_t, Neighbor>;
+
+    const node_id_t id_{};
+    NeighborMap neighbors_{};
+private:
+    MessageBox<MessagePayload> message_box_{};
+
+    void receiveMessage(MessageType&& msg){
+        const std::size_t neighbor_mbox_index = neighbors_.at(msg.sender_).neighbor_mbox_index_;
+        message_box_.writeMessage(std::move(msg), neighbor_mbox_index);
+    }
+    
+    void preCycle() requires ValidDerivedNode<Derived, MessageType> {
+        static_cast<Derived*>(this)->preCycleImpl();
+    } 
 };
 
 

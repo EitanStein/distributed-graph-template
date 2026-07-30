@@ -53,7 +53,7 @@ TEST_CASE("sending messages", ""){
 
     node2.postCycle();
     REQUIRE(!node2.emptyInbox());
-    REQUIRE(node2.readMessage().value().payload == TestNode::MessagePayload{});
+    REQUIRE(node2.readMessage().value().payload_ == TestNode::MessagePayload{});
     REQUIRE(node2.emptyInbox());
 
     TestNode node3{2};
@@ -68,7 +68,7 @@ TEST_CASE("sending messages", ""){
     node3.postCycle();
 
     REQUIRE(!node2.emptyInbox());
-    REQUIRE(node2.readMessage().value().payload == TestNode::MessagePayload{});
+    REQUIRE(node2.readMessage().value().payload_ == TestNode::MessagePayload{});
     REQUIRE(node2.emptyInbox());
     REQUIRE(node3.emptyInbox());
 }

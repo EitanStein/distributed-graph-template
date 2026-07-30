@@ -4,13 +4,13 @@
 
 template<typename Payload>
 struct Message{
-    node_id_t sender;
-    node_id_t recipient;
-    Payload payload;
+    node_id_t sender_;
+    node_id_t recipient_;
+    Payload payload_;
 
     explicit Message(node_id_t sender, node_id_t recipient, const Payload& msg) : 
-                    sender(sender), recipient(recipient), payload(msg) {}
+                    sender_(sender), recipient_(recipient), payload_(msg) {}
 
     explicit Message(node_id_t sender, node_id_t recipient, Payload&& msg) : 
-                    sender(sender), recipient(recipient), payload(std::move(msg)) {}
+                    sender_(sender), recipient_(recipient), payload_(std::move(msg)) {}
 };
