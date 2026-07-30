@@ -1,21 +1,19 @@
 #pragma once
 
 #include <vector>
+#include <concepts>
 
 #include "node.hpp"
 #include "utils/thread_pool.hpp"
 
 
+template<ValidNode Node>
 class Graph{
-    using ThreadTask = Node::Task;
-private:
-    std::vector<Node> nodes{};
-    ThreadPool<ThreadTask> thread_pool;
 public:
-    Graph(node_id_t size, std::size_t thread_pool_size = std::thread::hardware_concurrency()) : thread_pool(thread_pool_size){
-        nodes.reserve(size);
+    Graph(node_id_t size, std::size_t thread_pool_size = ThreadInfo::default_thread_count) : thread_pool_(thread_pool_size){
+        nodes_.reserve(size);
         for(node_id_t id = 0; id < size ; ++id){
-            nodes.emplace_back(id);
+            nodes_.emplace_back(id);
         }
     }
 
@@ -30,32 +28,44 @@ public:
     }
 
     void addEdge(node_id_t node1, node_id_t node2){
-        addEdge(nodes[node1], nodes[node2]);
+        addEdge(nodes_[node1], nodes_[node2]);
     }
     
     const std::vector<Node>& getNodes() const noexcept{
-        return nodes;
+        return nodes_;
     }
 
     const Node& getNode(node_id_t id) const {
-        return nodes.at(id);
+        return nodes_.at(id);
     }
     
     Node& getNode(node_id_t id) {
-        return nodes[id];
+        return nodes_[id];
     }
     
     void cycle(){
+        mainCycle();
+        thread_pool_.waitForEmptyQueue();
+        
+        // assumes post cycle is a lightweight operation - does not use threads
+        postCycle();
+    }
+private:
+    using ThreadTask = Node::Task;
+
+    ThreadPool<ThreadTask> thread_pool_;
+    std::vector<Node> nodes_{};
+
+    void mainCycle(){
         // TODO consider batching (active) nodes for each task so the task queue is smaller 
         // and less time is spent on lock contention when adding/extracting tasks
-        for(auto& node : nodes){
-            thread_pool.addTask(ThreadTask{node});
+        for(auto& node : nodes_){
+            thread_pool_.addTask(ThreadTask{node});
         }
+    }
 
-        thread_pool.waitForEmptyQueue();
-        
-        // assumes post cycle is a lightweight operation
-        for(auto& node : nodes){
+    void postCycle(){
+        for(auto& node : nodes_){
             node.postCycle();
         }
     }

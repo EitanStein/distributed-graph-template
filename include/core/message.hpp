@@ -1,17 +1,16 @@
 #pragma once
+
 #include "types.hpp"
-#include <memory>
 
-class Node;
-
+template<typename Payload>
 struct Message{
-    std::reference_wrapper<const Node> sender;
-    std::reference_wrapper<const Node> recipient;
-    msg_t payload;
+    node_id_t sender_;
+    node_id_t recipient_;
+    Payload payload_;
 
-    explicit Message(const Node& sender, const Node& recipient, const msg_t& msg) : 
-                    sender(sender), recipient(recipient), payload(msg) {}
+    explicit Message(node_id_t sender, node_id_t recipient, const Payload& msg) : 
+                    sender_(sender), recipient_(recipient), payload_(msg) {}
 
-    explicit Message(const Node& sender, const Node& recipient, msg_t&& msg) : 
-                    sender(sender), recipient(recipient), payload(std::move(msg)) {}
+    explicit Message(node_id_t sender, node_id_t recipient, Payload&& msg) : 
+                    sender_(sender), recipient_(recipient), payload_(std::move(msg)) {}
 };

@@ -10,26 +10,16 @@
 
 #include "ring_buffer.hpp"
 
-
-const std::size_t default_thread_count = std::thread::hardware_concurrency();
-
+namespace ThreadInfo{
+    const std::size_t default_thread_count = std::thread::hardware_concurrency();
+}
 
 template<std::invocable Task>
 class ThreadPool
 {
-private:
-    std::size_t thread_pool_size{};
-    std::mutex queue_lock;
-    std::vector<std::jthread> threads;
-    std::condition_variable_any queue_cv;
-    RingBufferQueue<Task> task_queue;
-
-    std::atomic<std::size_t> num_active_tasks{};
-    std::condition_variable tasks_done_cv;
-
-    void threadLoop(std::stop_token stoken);
 public:
-    ThreadPool(std::size_t thread_pool_size = default_thread_count);
+    
+    ThreadPool(std::size_t thread_pool_size = ThreadInfo::default_thread_count);
     ThreadPool(const ThreadPool&) = delete;
     ThreadPool(ThreadPool&&) noexcept = delete;
     ThreadPool& operator=(const ThreadPool&) = delete;
@@ -39,6 +29,17 @@ public:
     [[nodiscard]] bool isTaskQueueEmpty();
     void waitForEmptyQueue();
     void addTask(Task&& task);
+private:
+    std::size_t thread_pool_size_{};
+    std::mutex queue_lock_;
+    std::vector<std::jthread> threads_;
+    std::condition_variable_any queue_cv_;
+    RingBufferQueue<Task> task_queue_;
+
+    std::atomic<std::size_t> num_active_tasks_{};
+    std::condition_variable tasks_done_cv_;
+
+    void threadLoop(std::stop_token stoken);
 };
 
 #include "thread_pool_impl.hpp"

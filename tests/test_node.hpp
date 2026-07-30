@@ -2,7 +2,13 @@
 
 #include "core/node.hpp"
 
-struct TestNode{
-    const MessageBox& getMessageBox(Node& node) const {return node.message_box;}
-    const std::unordered_map<node_id_t, Node::Neighbor>& getNeighbors(Node& node) const {return node.neighbors;}
+class TestNode : public BaseNode<TestNode, int>{
+public:
+    TestNode(node_id_t id) : BaseNode(id) {}
+
+    bool isNeighbor(node_id_t id) const {return neighbors_.contains(id);}
+    std::size_t getNumNeighbors() const {return neighbors_.size();}
+
+    void handleMessage(MessageType&&) {}
+    void preCycleImpl() {}
 };
