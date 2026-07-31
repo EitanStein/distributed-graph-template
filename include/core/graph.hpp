@@ -60,6 +60,8 @@ private:
         // TODO consider batching (active) nodes for each task so the task queue is smaller 
         // and less time is spent on lock contention when adding/extracting tasks
         for(auto& node : nodes_){
+            if(!node.isRunningCycle())
+                continue;
             thread_pool_.addTask(ThreadTask{node});
         }
     }

@@ -8,7 +8,7 @@
 #include "message_box.hpp"
 #include "types.hpp"
 #include "utils/log_macros.hpp"
-
+#include "node_status.hpp"
 
 
 template<typename Derived, typename MsgArg>
@@ -71,6 +71,7 @@ public:
             
         Derived& neighbor_node = neighbors_.at(neighbor_id).neighbor_.get();
         neighbor_node.receiveMessage(MessageType(id_, neighbor_node.ID(), std::move(msg)));
+        status_.updateStatus(NodeStatus::Status::SentMsg);
     }
 
     void broadcast(MessagePayload&& msg){
@@ -78,6 +79,7 @@ public:
             Derived& neighbor_node = neighbor.neighbor_.get();
             neighbor_node.receiveMessage(MessageType(id_, neighbor_node.ID(), msg));
         }
+        status_.updateStatus(NodeStatus::Status::SentMsg);
     }
 
     void cycle(){
@@ -85,7 +87,20 @@ public:
     }
 
     void postCycle() {
+        status_.cycleStatus();
         message_box_.changePhase();
+    }
+
+    [[nodiscard]] bool receivedMsgLastCycle() const noexcept {
+        return status_.isLastCycleStatus(NodeStatus::Status::ReceivedMsg);
+    }
+
+    [[nodiscard]] bool SentMsgLastCycle() const noexcept {
+        return status_.isLastCycleStatus(NodeStatus::Status::SentMsg);
+    }
+
+    [[nodiscard]] bool isRunningCycle() const noexcept {
+        return status_.isLastCycleStatus(NodeStatus::Status::ReceivedMsg) || status_.isLastCycleStatus(NodeStatus::Status::Init);
     }
 protected:
     struct Neighbor{
@@ -98,13 +113,15 @@ protected:
 
     const node_id_t id_{};
     NeighborMap neighbors_{};
-private:
-    MessageBox<MessagePayload> message_box_{};
+    NodeStatus status_{};
 
     void receiveMessage(MessageType&& msg){
         const std::size_t neighbor_mbox_index = neighbors_.at(msg.sender_).neighbor_mbox_index_;
         message_box_.writeMessage(std::move(msg), neighbor_mbox_index);
+        status_.updateStatus(NodeStatus::Status::ReceivedMsg);
     }
+private:
+    MessageBox<MessagePayload> message_box_{};
     
     void preCycle() requires ValidDerivedNode<Derived, MessageType> {
         static_cast<Derived*>(this)->preCycleImpl();
