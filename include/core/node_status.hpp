@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <atomic>
 
 class NodeStatus{
 public:
@@ -11,17 +12,18 @@ public:
         ReceivedMsg = 1 << 2
     };
 
-    void updateStatus(Status new_status) noexcept {
-        status_ |= static_cast<std::uint8_t>(new_status);
+    void updateStatus(Status new_status) noexcept /*Thread safe*/ {
+        status_.fetch_or(static_cast<std::uint8_t>(new_status), std::memory_order_relaxed);
     }
 
-    void cycleStatus() noexcept {
-        status_ = status_ << 4;
+    void cycleStatus() noexcept /*NOT thread safe*/ {
+        std::uint8_t status = status_.load(std::memory_order_relaxed);
+        status_.fetch_or(static_cast<std::uint8_t>(status << 4), std::memory_order_relaxed);
     }
 
-    [[nodiscard]] bool isLastCycleStatus(Status status) const noexcept {
-        return (status_ & (static_cast<std::uint8_t>(status) << 4)) != 0;
+    [[nodiscard]] bool isLastCycleStatus(Status status) const noexcept /*Thread safe*/ {
+        return (status_.load(std::memory_order_relaxed) & (static_cast<std::uint8_t>(status) << 4)) != 0;
     }
 private:
-    std::uint8_t status_ = static_cast<std::uint8_t>(Status::None);
+    std::atomic<std::uint8_t> status_ = static_cast<std::uint8_t>(Status::None);
 };
