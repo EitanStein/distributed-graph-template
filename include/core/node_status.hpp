@@ -5,6 +5,10 @@
 
 class NodeStatus{
 public:
+    NodeStatus() = default;
+    NodeStatus(const NodeStatus&) = delete;
+    NodeStatus(NodeStatus&& other) noexcept : status_(other.status_.load(std::memory_order_relaxed)) {}
+
     enum class Status : std::uint8_t {
         None = 0,
         Init = 1,
