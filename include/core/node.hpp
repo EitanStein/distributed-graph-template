@@ -95,7 +95,7 @@ public:
         return status_.isLastCycleStatus(NodeStatus::Status::ReceivedMsg);
     }
 
-    [[nodiscard]] bool SentMsgLastCycle() const noexcept {
+    [[nodiscard]] bool sentMsgLastCycle() const noexcept {
         return status_.isLastCycleStatus(NodeStatus::Status::SentMsg);
     }
 

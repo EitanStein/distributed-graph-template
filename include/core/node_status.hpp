@@ -22,7 +22,7 @@ public:
 
     void cycleStatus() noexcept /*NOT thread safe*/ {
         std::uint8_t status = status_.load(std::memory_order_relaxed);
-        status_.fetch_or(static_cast<std::uint8_t>(status << 4), std::memory_order_relaxed);
+        status_ = static_cast<std::uint8_t>(status << 4);
     }
 
     [[nodiscard]] bool isLastCycleStatus(Status status) const noexcept /*Thread safe*/ {

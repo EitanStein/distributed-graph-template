@@ -73,3 +73,39 @@ TEST_CASE("sending messages", ""){
     REQUIRE(node3.emptyInbox());
 }
 
+TEST_CASE("node status changes", ""){
+    TestNode node1{0};
+    TestNode node2{1};
+
+    node1.addNeighbor(node2);
+    node2.addNeighbor(node1);
+
+    REQUIRE(!node1.isRunningCycle());
+    REQUIRE(!node2.isRunningCycle());
+
+    node1.sendMessage(1, TestNode::MessagePayload{});
+    REQUIRE(!node1.receivedMsgLastCycle());
+    REQUIRE(!node1.sentMsgLastCycle());
+    REQUIRE(!node1.isRunningCycle());
+    REQUIRE(!node2.isRunningCycle());
+    REQUIRE(!node2.receivedMsgLastCycle());
+
+    node1.postCycle();
+    node2.postCycle();
+
+    REQUIRE(!node1.receivedMsgLastCycle());
+    REQUIRE(node1.sentMsgLastCycle());
+    REQUIRE(!node1.isRunningCycle());
+    REQUIRE(node2.isRunningCycle());
+    REQUIRE(node2.receivedMsgLastCycle());
+
+    node2.cycle();
+    node1.postCycle();
+    node2.postCycle();
+
+    REQUIRE(!node1.receivedMsgLastCycle());
+    REQUIRE(!node1.sentMsgLastCycle());
+    REQUIRE(!node1.isRunningCycle());
+    REQUIRE(!node2.isRunningCycle());
+    REQUIRE(!node2.receivedMsgLastCycle());
+}
