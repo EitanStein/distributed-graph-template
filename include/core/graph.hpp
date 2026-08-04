@@ -31,15 +31,15 @@ public:
         addEdge(nodes_[node1], nodes_[node2]);
     }
     
-    const std::vector<Node>& getNodes() const noexcept{
+    [[nodiscard]] const std::vector<Node>& getNodes() const noexcept{
         return nodes_;
     }
 
-    const Node& getNode(node_id_t id) const {
+    [[nodiscard]] const Node& getNode(node_id_t id) const {
         return nodes_.at(id);
     }
     
-    Node& getNode(node_id_t id) {
+    [[nodiscard]] Node& getNode(node_id_t id) {
         return nodes_[id];
     }
     

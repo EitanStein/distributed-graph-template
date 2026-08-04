@@ -6,8 +6,8 @@ class TestNode : public BaseNode<TestNode, int>{
 public:
     TestNode(node_id_t id) : BaseNode(id) {}
 
-    bool isNeighbor(node_id_t id) const {return neighbors_.contains(id);}
-    std::size_t getNumNeighbors() const {return neighbors_.size();}
+    [[nodiscard]] bool isNeighbor(node_id_t id) const {return neighbors_.contains(id);}
+    [[nodiscard]] std::size_t getNumNeighbors() const {return neighbors_.size();}
 
     void handleMessage(MessageType&&) {}
     void preCycleImpl() {}

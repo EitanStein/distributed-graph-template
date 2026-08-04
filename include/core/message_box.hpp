@@ -80,7 +80,7 @@ private:
         std::swap(read_slot_, write_slot_);
     }
 
-    MsgBuffer& getNextNonEmptyReadBuffer() {
+    [[nodiscard]] MsgBuffer& getNextNonEmptyReadBuffer() {
         MsgBuffer& target_buffer = message_box_[read_slot_][buffer_read_index_];
         while(target_buffer.empty()){
             ++buffer_read_index_;
