@@ -7,20 +7,26 @@
 #include "utils/thread_pool.hpp"
 
 
-template<ValidNode Node>
-class Graph{
+template<typename Derived>
+concept ValidDerivedGraph = requires(Derived graph){
+    {graph.mainCycleImpl()} -> std::same_as<void>;
+};
+
+
+template<typename Derived, ValidNode Node, std::invocable Task>
+class BaseGraph{
 public:
-    Graph(node_id_t size, std::size_t thread_pool_size = ThreadInfo::default_thread_count) : thread_pool_(thread_pool_size){
+    BaseGraph(node_id_t size, std::size_t thread_pool_size = ThreadInfo::default_thread_count) : thread_pool_(thread_pool_size){
         nodes_.reserve(size);
         for(node_id_t id = 0; id < size ; ++id){
             nodes_.emplace_back(id);
         }
     }
 
-    Graph(const Graph&) = delete;
-    Graph(Graph&&) noexcept = delete;
-    Graph& operator=(const Graph&) = delete;
-    Graph& operator=(Graph&&) noexcept = delete;
+    BaseGraph(const BaseGraph&) = delete;
+    BaseGraph(BaseGraph&&) noexcept = delete;
+    BaseGraph& operator=(const BaseGraph&) = delete;
+    BaseGraph& operator=(BaseGraph&&) noexcept = delete;
 
     void addEdge(Node& node1, Node& node2){
         node1.addNeighbor(node2);
@@ -50,23 +56,15 @@ public:
         // assumes post cycle is a lightweight operation - does not use threads
         postCycle();
     }
-private:
-    using ThreadTask = Node::Task;
-
-    ThreadPool<ThreadTask> thread_pool_;
+protected:
+    ThreadPool<Task> thread_pool_;
     std::vector<Node> nodes_{};
 
-    void mainCycle(){
-        // TODO consider batching (active) nodes for each task so the task queue is smaller 
-        // and less time is spent on lock contention when adding/extracting tasks
-        for(auto& node : nodes_){
-            if(!node.isRunningCycle())
-                continue;
-            thread_pool_.addTask(ThreadTask{node});
-        }
+    void mainCycle() requires ValidDerivedGraph<Derived> {
+        static_cast<Derived*>(this)->mainCycleImpl();
     }
 
-    void postCycle(){
+    void postCycle() {
         for(auto& node : nodes_){
             node.postCycle();
         }
