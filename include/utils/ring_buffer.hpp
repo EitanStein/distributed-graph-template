@@ -7,7 +7,7 @@
 template <typename T>
 class RingBufferQueue{
 public:
-    void allocate_queue(size_t size, const T& default_value);
+    RingBufferQueue(std::size_t size);
     [[nodiscard]] bool empty() const noexcept;
     template<typename... Args>
     void emplace(Args&&... args);
@@ -16,9 +16,9 @@ public:
     void pop();
 
 private:
-    size_t front_index_{};
-    size_t back_index_{};
-    size_t queue_size_{};
+    size_t front_index_{0};
+    size_t back_index_{0};
+    size_t queue_size_{0};
     std::vector<T> main_queue_{};
     std::queue<T> backup_queue_{};
 

@@ -3,10 +3,11 @@
 #include "thread_pool.hpp"
 
 template<std::invocable Task>
-ThreadPool<Task>::ThreadPool(std::size_t thread_pool_size) : thread_pool_size_(thread_pool_size), num_active_tasks_(0){
+ThreadPool<Task>::ThreadPool(std::size_t thread_pool_size, std::size_t task_queue_size) : 
+                    thread_pool_size_(thread_pool_size), task_queue_(task_queue_size), num_active_tasks_(0){
     threads_.reserve(thread_pool_size_);
     for(std::size_t i=0; i < thread_pool_size_ ; ++i){
-        threads_.emplace_back([this](std::stop_token stoken){ this->threadLoop(stoken); });
+        threads_.emplace_back(&ThreadPool<Task>::threadLoop, this);
     } 
 }
 
@@ -17,6 +18,11 @@ ThreadPool<Task>::~ThreadPool() {
     }
 
     queue_cv_.notify_all();
+
+    for (auto& th : threads_) {
+        if (th.joinable()) 
+            th.join();
+    }
 }
 
 template<std::invocable Task>

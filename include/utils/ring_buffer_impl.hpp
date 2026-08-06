@@ -1,5 +1,11 @@
 #pragma once
+
 #include "ring_buffer.hpp"
+
+template<typename T>
+RingBufferQueue<T>::RingBufferQueue(std::size_t size){
+    main_queue_.reserve(size);
+}
 
 template<typename T>
 void RingBufferQueue<T>::increment_front_index() noexcept{
@@ -14,11 +20,6 @@ void RingBufferQueue<T>::increment_back_index() noexcept{
 }
 
 template<typename T>
-void RingBufferQueue<T>::allocate_queue(size_t size, const T& default_value) {
-    main_queue_ = std::vector<T>(size, default_value);
-}
-
-template<typename T>
 [[nodiscard]] bool RingBufferQueue<T>::empty() const noexcept{
     return queue_size_ == 0;
 }
@@ -26,7 +27,10 @@ template<typename T>
 template<typename T>
 template<typename ...Args>
 void RingBufferQueue<T>::emplace(Args&&... args){
-    if(queue_size_ < main_queue_.size()){
+    if(main_queue_.size() < main_queue_.capacity()){
+        main_queue_.emplace_back(std::forward<Args>(args)...);
+    }
+    else if(queue_size_ < main_queue_.size()){
         // TODO placement new to avoid temporary constructor call
         main_queue_[back_index_] = T(std::forward<Args>(args)...);
         increment_back_index();
