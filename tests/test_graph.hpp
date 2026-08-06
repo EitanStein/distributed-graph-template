@@ -4,6 +4,7 @@
 #include "test_node.hpp"
 
 class TestGraph : public BaseGraph<TestGraph, TestNode, TestNode::Task>{
+public:
     using BaseGraph<TestGraph, TestNode, TestNode::Task>::BaseGraph;
     using ThreadTask = TestNode::Task;
 

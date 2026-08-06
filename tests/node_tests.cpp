@@ -109,3 +109,29 @@ TEST_CASE("node status changes", ""){
     REQUIRE(!node2.isRunningCycle());
     REQUIRE(!node2.receivedMsgLastCycle());
 }
+
+TEST_CASE("using node default task", ""){
+    TestNode node1{0};
+    TestNode node2{1};
+
+    node1.addNeighbor(node2);
+    node2.addNeighbor(node1);
+
+    TestNode::Task task{node1};
+    REQUIRE_NOTHROW(task());
+
+    node1.sendMessage(1, TestNode::MessagePayload{});
+    REQUIRE(!node2.isRunningCycle());
+    REQUIRE_NOTHROW(TestNode::Task{node1}());
+    REQUIRE_NOTHROW(TestNode::Task{node2}());
+    node1.postCycle();
+    node2.postCycle();
+
+    REQUIRE(node2.isRunningCycle());
+    REQUIRE_NOTHROW(TestNode::Task{node1}());
+    REQUIRE_NOTHROW(TestNode::Task{node2}());
+    node1.postCycle();
+    node2.postCycle();
+
+    REQUIRE(!node2.isRunningCycle());
+}

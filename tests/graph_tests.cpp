@@ -23,3 +23,28 @@ TEST_CASE("multiple nodes", ""){
     REQUIRE(g.getNodes().at(0).getNumNeighbors() == 1);
     REQUIRE(g.getNodes().at(0).isNeighbor(1));
 }
+
+TEST_CASE("sending messages", ""){
+    TestGraph g(2);
+    g.addEdge(0, 1);
+
+    g.getNode(0).broadcast(TestNode::MessagePayload{5});
+    REQUIRE(!g.getNode(1).isRunningCycle());
+    REQUIRE(!g.getNode(1).receivedMsgLastCycle());
+    REQUIRE(!g.getNode(0).sentMsgLastCycle());
+    REQUIRE(!g.getNode(0).isRunningCycle());
+
+    g.cycle();
+
+    REQUIRE(g.getNode(1).isRunningCycle());
+    REQUIRE(g.getNode(1).receivedMsgLastCycle());
+    REQUIRE(g.getNode(0).sentMsgLastCycle());
+    REQUIRE(!g.getNode(0).isRunningCycle());
+
+    g.cycle();
+
+    REQUIRE(!g.getNode(1).isRunningCycle());
+    REQUIRE(!g.getNode(1).receivedMsgLastCycle());
+    REQUIRE(!g.getNode(0).sentMsgLastCycle());
+    REQUIRE(!g.getNode(0).isRunningCycle());
+}
