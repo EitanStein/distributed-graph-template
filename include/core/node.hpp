@@ -27,6 +27,10 @@ public:
         std::reference_wrapper<Derived> node;
 
         Task(Derived& node) : node(node) {}
+        Task(const Task&) = default;
+        Task(Task&&) noexcept = default;
+        Task& operator=(const Task&) = default;
+        Task& operator=(Task&&) noexcept = default;
 
         void operator()() {
             node.get().preCycle();
