@@ -41,7 +41,7 @@ public:
     }
 
     [[nodiscard]] const Node& getNode(node_id_t id) const {
-        return nodes_.at(id);
+        return nodes_[id];
     }
     
     [[nodiscard]] Node& getNode(node_id_t id) {

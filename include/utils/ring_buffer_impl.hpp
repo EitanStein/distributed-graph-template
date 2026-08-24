@@ -52,7 +52,7 @@ template<typename T>
 [[nodiscard]] T const& RingBufferQueue<T>::front() const{
     if(queue_size_ == 0) [[unlikely]]
         throw std::runtime_error("empty task queue");
-    return main_queue_.at(front_index_);
+    return main_queue_[front_index_];
 }
 
 template<typename T>
