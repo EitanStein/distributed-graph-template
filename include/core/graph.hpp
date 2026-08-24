@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <concepts>
+#include <span>
 
 #include "node.hpp"
 #include "utils/thread_pool.hpp"
@@ -31,7 +32,11 @@ public:
         addEdge(nodes_[node1], nodes_[node2]);
     }
     
-    [[nodiscard]] const std::vector<Node>& getNodes() const noexcept{
+    [[nodiscard]] const std::span<const Node> getNodes() const noexcept{
+        return nodes_;
+    }
+
+    [[nodiscard]] const std::span<Node> getNodes() noexcept{
         return nodes_;
     }
 
@@ -59,7 +64,7 @@ protected:
     }
 
     void postCycle() {
-        for(auto& node : nodes_){
+        for(auto& node : getNodes()){
             node.postCycle();
         }
     }

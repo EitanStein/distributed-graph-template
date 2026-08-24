@@ -9,7 +9,7 @@ public:
     ~TestGraph() = default;
 protected:
     void mainCycle() override{
-        for(auto& node : nodes_){
+        for(auto& node : getNodes()){
             if(!node.isRunningCycle())
                 continue;
             thread_pool_.addTask(Task{node});
