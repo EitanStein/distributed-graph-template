@@ -9,19 +9,19 @@
 TEST_CASE("single node", ""){
     TestGraph g(1);
     REQUIRE(g.getNodes().size() == 1);
-    REQUIRE(g.getNodes().at(0).ID() == 0);
+    REQUIRE(g.getNode(0).ID() == 0);
 }
 
 
 TEST_CASE("multiple nodes", ""){
     TestGraph g(2);
     REQUIRE(g.getNodes().size() == 2);
-    REQUIRE(g.getNodes().at(0).ID() == 0);
-    REQUIRE(g.getNodes().at(1).ID() == 1);
+    REQUIRE(g.getNode(0).ID() == 0);
+    REQUIRE(g.getNode(1).ID() == 1);
 
     g.addEdge(0, 1);
-    REQUIRE(g.getNodes().at(0).getNumNeighbors() == 1);
-    REQUIRE(g.getNodes().at(0).isNeighbor(1));
+    REQUIRE(g.getNode(0).getNumNeighbors() == 1);
+    REQUIRE(g.getNode(0).isNeighbor(1));
 }
 
 TEST_CASE("sending messages", ""){
